@@ -1,0 +1,23 @@
+{
+  "name": "simple-audio-playlist",
+  "version": "1.0.0",
+  "description": "Creates an audio playlist website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/landau/simple-audio-playlist.git"
+  },
+  "keywords": [
+    "audio",
+    "html"
+  ],
+  "author": "Trevor Landau",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/landau/simple-audio-playlist/issues"
+  },
+  "homepage": "https://github.com/landau/simple-audio-playlist#readme"
+}
