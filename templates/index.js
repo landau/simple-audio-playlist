@@ -1,11 +1,6 @@
 (() => {
   'use strict';
 
-  // On click event
-  // Check if playing
-  // yes? stop playing current track, play selected
-  // no? play selected
-
   const BUTTON_PLAY_CLASS = 'glyphicon-play';
   const BUTTON_PAUSE_CLASS = 'glyphicon-pause';
 
@@ -24,15 +19,22 @@
         throw new Error('Unable to find progress bar.');
       }
 
+      this.name = element.querySelector('[data-name]');
+      if (!this.name) {
+        throw new Error('Unable to find name element.');
+      }
+
       this.isPlaying = false;
       this.src = element.dataset.src;
+      this.name.innerHTML = this.src
+
       console.log(`Track with src ${this.src} created.`);
 
-      this.onPlayEvents = [];
+      this.onClickEvents = [];
 
       this.element.addEventListener('click', e => {
         console.log(`Track with src ${this.src} clicked.`);
-        this.onPlayEvents.forEach(fn => fn(this));
+        this.onClickEvents.forEach(fn => fn(this));
       });
     }
 
@@ -46,8 +48,8 @@
       this.button.classList.add(BUTTON_PLAY_CLASS);
     }
 
-    onPlay(fn) {
-      this.onPlayEvents.push(fn);
+    onClick(fn) {
+      this.onClickEvents.push(fn);
     }
 
     setTime(duration, currentTime) {
@@ -70,13 +72,14 @@
   class Player {
     constructor(elements) {
       console.log('Player constructed');
+
       this.isPlaying = false;
       this.track = null;
       this.audio = new Audio();
 
       this.tracks = Array.from(elements).map(e => new Track(e));
       this.tracks.forEach(t => {
-        t.onPlay(t => this.play(t));
+        t.onClick(t => this.play(t));
       });
     }
 
@@ -104,13 +107,12 @@
       this.track = track;
       this.track.play();
 
-      // TODO: handle loading
-      // TODO: track time
       this.timer = setInterval(() => {
         track.setTime(this.audio.duration, this.audio.currentTime);
       }, 1e3);
 
-      // TODO: handled ended event?
+      // TODO: handle loading
+      // TODO: handled ended event for calling stop.
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/ended
     }
 
