@@ -4,6 +4,54 @@
   const BUTTON_PLAY_CLASS = 'glyphicon-play';
   const BUTTON_PAUSE_CLASS = 'glyphicon-pause';
 
+
+  class AudioX extends Audio {
+    constructor() {
+      super();
+
+      this.mins = 0;
+      this.secs = 0;
+      this.initial = 0;
+      this.remaining = 100;
+      this.step = 0.25;
+
+      this.onTickEvents = [];
+
+      // TODO: make this smater in terms of play, pause, etc
+      //       or is there a audio event to react to instead?
+      this.timer = setInterval(() => {
+        this.setTime();
+        this.onTickEvents.forEach(fn => fn(this));
+      }, 500);
+    }
+
+    setTime() {
+      const rem = parseInt(this.duration - this.currentTime, 10);
+      this.mins = Math.floor(rem / 60, 10);
+      this.secs = rem - this.mins * 60;
+
+      // console.log(mins, secs);
+
+      // Percentage of song
+      this.initial = (this.currentTime / this.duration) * 100;
+      this.remaining = 100 - this.initial;
+    }
+
+    onTick(fn) {
+      this.onTickEvents.push(fn);
+    }
+
+    back(time) {
+      console.log(`Seeking back ${time} seconds`);
+      this.currentTime -= time;
+    }
+
+    fwd(time) {
+      console.log(`Seeking fwd ${time} seconds`);
+      this.currentTime += time
+    }
+  }
+
   class Track {
     constructor(element) {
       this.element = element;
@@ -11,12 +59,6 @@
       this.button = element.querySelector('[data-button]');
       if (!this.button) {
         throw new Error('Unable to find button.');
-      }
-
-
-      this.progress = element.querySelector('[data-progress]');
-      if (!this.progress) {
-        throw new Error('Unable to find progress bar.');
       }
 
       this.name = element.querySelector('[data-name]');
@@ -51,46 +93,93 @@
     onClick(fn) {
       this.onClickEvents.push(fn);
     }
+  }
 
-    setTime(duration, currentTime) {
-      const rem = parseInt(duration - currentTime, 10);
-      const mins = Math.floor(rem / 60, 10);
-      let secs = rem - mins * 60;
+  // TODO: handle slider movements
+  class Slider {
+    constructor(element) {
+      this.slider = element;
+      if (!this.slider)  {
+        throw new Error('Cannot start. No slider element');
+      }
+
+      this.time = this.slider.querySelector('[data-time]');
+      this.range = this.slider.querySelector('input');
+
+    }
+
+    setTime(audio) {
+      const {mins, remaining} = audio;
+      let secs = audio.secs;
 
       if (secs < 10) {
         secs = `0${secs}`;
       }
 
-      // console.log(mins, secs);
-
-      const t = 100 - ((currentTime / duration) * 100);
-      this.progress.style.width = `${t}%`;
-      this.progress.innerHTML = `${mins}:${secs}`;
+      this.time.innerHTML = `${mins}:${secs}`;
+      this.range.value = audio.initial;
     }
   }
 
+  // TODO: add track name
+  // TODO: remember player positions via local storage
   class Player {
-    constructor(elements) {
+    constructor(trackElements, playerElement, sliderElement) {
       console.log('Player constructed');
 
+      this.audio = new AudioX();
       this.isPlaying = false;
       this.track = null;
-      this.audio = new Audio();
 
-      this.tracks = Array.from(elements).map(e => new Track(e));
+      this.tracks = Array.from(trackElements).map(e => new Track(e));
       this.tracks.forEach(t => {
         t.onClick(t => this.play(t));
+      });
+
+      this.player = playerElement;
+      this.playEl = this.player.querySelector('[data-play]');
+      this.stopEl = this.player.querySelector('[data-stop]');
+      this.backEl = this.player.querySelector('[data-back]');
+      this.fwdEl = this.player.querySelector('[data-fwd]');
+
+      this.playEl.addEventListener('click', e => {
+        this.play(this.track);
+      });
+
+      this.stopEl.addEventListener('click', e => {
+        this.stop();
+      });
+
+      this.backEl.addEventListener('click', e => {
+        this.audio.back(15);
+      });
+
+      this.fwdEl.addEventListener('click', e => {
+        this.audio.fwd(15);
+      });
+
+      this.slider = new Slider(sliderElement);
+
+      this.audio.onTick(time => {
+        if (this.track) {
+          this.slider.setTime(this.audio);
+        }
       });
     }
 
     play(track) {
+      if (!track) {
+        console.log('Cannot play. No track provided.');
+        return;
+      }
 
       if (this.isPlaying) {
-        this.stop();
-
         // Same track clicked,
         if (track === this.track) {
+          console.log('This track is already playing.');
           return;
+        } else {
+          this.stop();
         }
       }
 
@@ -103,16 +192,10 @@
 
       this.audio.play();
       this.isPlaying = true;
-
       this.track = track;
-      this.track.play();
-
-      this.timer = setInterval(() => {
-        track.setTime(this.audio.duration, this.audio.currentTime);
-      }, 1e3);
 
       // TODO: handle loading
-      // TODO: handled ended event for calling stop.
+      // TODO: handled ended event for restarting track or something
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/ended
     }
 
@@ -121,14 +204,15 @@
         console.log(`Stopping track ${this.track.src}.`);
         clearInterval(this.timer);
 
-        this.track.stop();
         this.audio.pause();
         this.isPlaying = false;
       }
     }
-
-    // TODO: add step back 15sec
   }
-  const p = new Player(document.querySelectorAll('div[data-track]'));
+  const p = new Player(
+    document.querySelectorAll('div[data-track]'),
+    document.querySelector('div[data-player]'),
+    document.querySelector('[data-slider]')
+  );
   window.p = p;
 })();
