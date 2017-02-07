@@ -171,7 +171,7 @@
         this.secs = 0;
         this.initial = 0;
         this.remaining = 100;
-        this.step = 0.25;
+
 
         this.onTickEvents = [];
 
@@ -244,27 +244,49 @@
 
     // TODO: handle slider movements
     class Slider {
-      constructor(element) {
+      constructor(element, audio) {
         this.slider = element;
+
         if (!this.slider)  {
           throw new Error('Cannot start. No slider element');
         }
 
+        this.audio = audio;
+
+        this.slider.step = 0.25;
+        this.slider.min = 0;
+        this.slider.max = audio.duration;
+
+        this.onChangeEvents = [];
+
         this.time = this.slider.querySelector('[data-time]');
         this.range = this.slider.querySelector('input');
 
+        this.slider.addEventListener('change', e => {
+          const N = e.target.valueAsNumber;
+          console.log(`Moved slider ${N}`);
+          this.slider.value = N;
+          this.onChangeEvents.forEach(fn => fn(N));
+        });
       }
 
       setTime(audio) {
-        const {mins, remaining} = audio;
-        let secs = audio.secs;
+        let {mins, secs} = audio;
 
         if (secs < 10) {
           secs = `0${secs}`;
         }
 
         this.time.innerHTML = `${mins}:${secs}`;
-        this.range.value = audio.initial;
+        this.range.value = audio.currentTime; // FIXME: this is not updating on chrome mobile
+
+        if (audio.duration !== this.range.max) {
+          this.range.max = audio.duration;
+        }
+      }
+
+      onChange(fn) {
+        this.onChangeEvents.push(fn);
       }
     }
 
@@ -297,15 +319,19 @@
           this.stop();
         });
 
-        this.backEl.addEventListener('click', e => {
+        this.backEl.addEventListener('click', () => {
           this.audio.back(15);
         });
 
-        this.fwdEl.addEventListener('click', e => {
+        this.fwdEl.addEventListener('click', () => {
           this.audio.fwd(15);
         });
 
-        this.slider = new Slider(sliderElement);
+        this.slider = new Slider(sliderElement, this.audio);
+
+        this.slider.onChange(n => {
+          this.audio.currentTime = n;
+        });
 
         this.audio.onTick(time => {
           if (this.track) {
@@ -332,9 +358,9 @@
 
         console.log(`Playing track ${track.src}.`);
 
-        // Keep current location of track if same track is played
         if (track !== this.track) {
           this.audio.src = track.src;
+          this.audio.currentTime = 0;
         }
 
         this.audio.play();

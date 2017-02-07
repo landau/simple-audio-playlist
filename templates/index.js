@@ -9,11 +9,16 @@
     constructor() {
       super();
 
+      this.step = 0.01;
+      this.max = 100;
+      this.min = 0;
+
       this.mins = 0;
       this.secs = 0;
       this.initial = 0;
       this.remaining = 100;
-      this.step = 0.25;
+
+
 
       this.onTickEvents = [];
 
@@ -94,7 +99,7 @@
     }
   }
 
-  // TODO: handle slider movements
+  // TODO: handle slider movements via onchange
   class Slider {
     constructor(element) {
       this.slider = element;
@@ -104,7 +109,6 @@
 
       this.time = this.slider.querySelector('[data-time]');
       this.range = this.slider.querySelector('input');
-
     }
 
     setTime(audio) {
@@ -116,7 +120,7 @@
       }
 
       this.time.innerHTML = `${mins}:${secs}`;
-      this.range.value = audio.initial;
+      this.range.value = audio.initial; // FIXME: this is not working on chrome mobile
     }
   }
 
