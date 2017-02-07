@@ -17,12 +17,11 @@
 
       this.onTickEvents = [];
 
-      // TODO: make this smater in terms of play, pause, etc
-      //       or is there a audio event to react to instead?
-      this.timer = setInterval(() => {
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement#Event_handlers
+      this.addEventListener('timeupdate', () => {
         this.setTime();
         this.onTickEvents.forEach(fn => fn(this));
-      }, 500);
+      });
     }
 
     setTime() {
