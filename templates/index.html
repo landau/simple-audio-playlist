@@ -163,10 +163,6 @@
   (() => {
     'use strict';
 
-    const BUTTON_PLAY_CLASS = 'glyphicon-play';
-    const BUTTON_PAUSE_CLASS = 'glyphicon-pause';
-
-
     class AudioX extends Audio {
       constructor() {
         super();
@@ -240,16 +236,6 @@
           console.log(`Track with src ${this.src} clicked.`);
           this.onClickEvents.forEach(fn => fn(this));
         });
-      }
-
-      play() {
-        this.button.classList.remove(BUTTON_PLAY_CLASS);
-        this.button.classList.add(BUTTON_PAUSE_CLASS);
-      }
-
-      stop() {
-        this.button.classList.remove(BUTTON_PAUSE_CLASS);
-        this.button.classList.add(BUTTON_PLAY_CLASS);
       }
 
       onClick(fn) {
