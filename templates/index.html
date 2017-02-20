@@ -14,6 +14,7 @@
   <!-- Bootstrap core CSS -->
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- <script src="http://192.168.1.121:8080/target/target-script-min.js#anonymous"></script> -->
 
   <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
   <!-- <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet"> -->
@@ -61,7 +62,7 @@
     }
 
     .media .glyphicon {
-      font-size: 40px;
+      font-size: 30px;
     }
 
     .aligned {
@@ -163,15 +164,15 @@
   (() => {
     'use strict';
 
-    class AudioX extends Audio {
+    class AudioX {
       constructor() {
-        super();
+
+        this.audio = new Audio();
 
         this.mins = 0;
         this.secs = 0;
         this.initial = 0;
         this.remaining = 100;
-
 
         this.onTickEvents = [];
 
@@ -182,12 +183,45 @@
         });
       }
 
+      // Mobile does not like inheriting from Audio. :(
+      // So we use adpater pattern
+
+      get duration() {
+        return this.audio.duration;
+      }
+
+      get currentTime() {
+        return this.audio.currentTime;
+      }
+
+      set currentTime(v) {
+        this.audio.currentTime = v;
+      }
+
+      get src() {
+        return this.audio.src;
+      }
+
+      set src(v) {
+        this.audio.src = v;
+      }
+
+      play() {
+        this.audio.play();
+      }
+
+      pause() {
+        this.audio.pause();
+      }
+
+      addEventListener(event, fn) {
+        this.audio.addEventListener(event, fn);
+      }
+
       setTime() {
         const rem = parseInt(this.duration - this.currentTime, 10);
         this.mins = Math.floor(rem / 60, 10);
         this.secs = rem - this.mins * 60;
-
-        // console.log(mins, secs);
 
         // Percentage of song
         this.initial = (this.currentTime / this.duration) * 100;
@@ -209,6 +243,8 @@
       }
     }
 
+    // TODO: Use loading image when loading
+    // TODO: change icon for selected
     class Track {
       constructor(element) {
         this.element = element;
@@ -232,6 +268,7 @@
         this.onClickEvents = [];
 
         this.element.addEventListener('click', e => {
+          e.preventDefault();
           console.log(`Track with src ${this.src} clicked.`);
           this.onClickEvents.forEach(fn => fn(this));
         });
@@ -262,12 +299,14 @@
         this.time = this.slider.querySelector('[data-time]');
         this.range = this.slider.querySelector('input');
 
-        this.slider.addEventListener('change', e => {
-          const N = e.target.valueAsNumber;
-          console.log(`Moved slider ${N}`);
-          this.slider.value = N;
-          this.onChangeEvents.forEach(fn => fn(N));
-        });
+        // this.slider.addEventListener('input', this._onChange.bind(this));
+        this.slider.addEventListener('change', this._onChange.bind(this));
+      }
+
+      _onChange(e) {
+        const N = e.target.valueAsNumber;
+        this.slider.value = N;
+        this.onChangeEvents.forEach(fn => fn(N));
       }
 
       setTime(audio) {
@@ -278,7 +317,7 @@
         }
 
         this.time.innerHTML = `${mins}:${secs}`;
-        this.range.value = audio.currentTime; // FIXME: this is not updating on chrome mobile
+        this.range.value = audio.currentTime;
 
         if (audio.duration !== this.range.max) {
           this.range.max = audio.duration;
@@ -290,7 +329,6 @@
       }
     }
 
-    // TODO: add track name
     // TODO: remember player positions via local storage
     class Player {
       constructor(trackElements, playerElement, sliderElement) {
@@ -338,6 +376,7 @@
             this.slider.setTime(this.audio);
           }
         });
+
       }
 
       play(track) {
@@ -390,5 +429,6 @@
     window.p = p;
   })();
   </script>
+
 </body>
 </html>
