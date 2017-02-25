@@ -14,6 +14,6 @@ const fileNames = fs.readdirSync(CWD).filter(f => /\.mp3$/.test(f));
 // TODO: get time
 const items = fileNames.map(f => ITEM_HTML.replace('{src}', f)).join('\n');
 const html = INDEX_HTML
-  .replace('{items}', items);
+  .replace('{items}', items)
   .replace('{title}', process.argv[2] || 'Simple Audio Player');
 console.log(html);
