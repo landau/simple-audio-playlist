@@ -93,6 +93,33 @@
       color:white;
       //background-color:white;
     }
+
+    .glyphicon-spin {
+      -webkit-animation: spin 1000ms infinite linear;
+      animation: spin 1000ms infinite linear;
+    }
+
+    @-webkit-keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+      }
+    }
+
+    @keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+      }
+    }
   </style>
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -163,6 +190,9 @@
   <script>
   (() => {
     'use strict';
+    // TODO: refactor this to purley use 1 audio element per track
+    // The Player should react to events and should inform a "system"
+    // when a user tries to interact
 
     class AudioX {
       constructor() {
@@ -216,6 +246,16 @@
 
       addEventListener(event, fn) {
         this.audio.addEventListener(event, fn);
+        return () => {
+          this.audio.removeEventListener(event, fn);
+        };
+      }
+
+      once(event, fn) {
+        const removeEvent = this.addEventListener(event, (e) => {
+          fn(e);
+          removeEvent();
+        });
       }
 
       setTime() {
@@ -243,8 +283,6 @@
       }
     }
 
-    // TODO: Use loading image when loading
-    // TODO: change icon for selected
     class Track {
       constructor(element) {
         this.element = element;
@@ -259,7 +297,6 @@
           throw new Error('Unable to find name element.');
         }
 
-        this.isPlaying = false;
         this.src = element.dataset.src;
         this.name.innerHTML = this.src
 
@@ -277,9 +314,31 @@
       onClick(fn) {
         this.onClickEvents.push(fn);
       }
+
+      _setDefaultButtonClass() {
+        this.button.classList.remove('glyphicon-play-circle');
+        this.button.classList.remove('glyphicon-music');
+        this.button.classList.remove('glyphicon-refresh');
+        this.button.classList.remove('glyphicon-spin');
+      }
+
+      setAsPlaying() {
+        this._setDefaultButtonClass();
+        this.button.classList.add('glyphicon-play-circle');
+      }
+
+      setAsStopped() {
+        this._setDefaultButtonClass();
+        this.button.classList.add('glyphicon-music');
+      }
+
+      setAsLoading() {
+        this._setDefaultButtonClass();
+        this.button.classList.add('glyphicon-refresh');
+        this.button.classList.add('glyphicon-spin');
+      }
     }
 
-    // TODO: handle slider movements
     class Slider {
       constructor(element, audio) {
         this.slider = element;
@@ -349,7 +408,7 @@
         this.backEl = this.player.querySelector('[data-back]');
         this.fwdEl = this.player.querySelector('[data-fwd]');
 
-        this.playEl.addEventListener('click', e => {
+        this.playEl.addEventListener('click', e => {interact
           this.play(this.track);
         });
 
@@ -400,15 +459,28 @@
         if (track !== this.track) {
           this.audio.src = track.src;
           this.audio.currentTime = 0;
+
+          // FIXME: Memory leak if you goto another track
+          this.audio.once('loadstart', () => {
+            track.setAsLoading();
+          });
+
+          this.audio.once('loadeddata', () => {
+            track.setAsPlaying();
+          });
+
+          this.audio.once('ended', () => {
+            this.stop();
+            this.track = null;
+          })
+        } else {
+          // If user stops then plays, the icon switches
+          track.setAsPlaying();
         }
 
         this.audio.play();
         this.isPlaying = true;
         this.track = track;
-
-        // TODO: handle loading
-        // TODO: handled ended event for restarting track or something
-        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/ended
       }
 
       stop() {
@@ -418,6 +490,7 @@
 
           this.audio.pause();
           this.isPlaying = false;
+          this.track.setAsStopped();
         }
       }
     }
@@ -428,6 +501,9 @@
     );
     window.p = p;
   })();
+  // TODO:
+  // Use localStorage to track currentTime of current track. Set track if track never unsets
+  //    Scroll to that track as well
   </script>
 
 </body>
