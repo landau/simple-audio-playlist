@@ -490,7 +490,6 @@
 
       audio.on('ended', () => {
         this.stop();
-        this.activeAudio = null;
       });
 
       audio.play();
@@ -527,7 +526,6 @@
         const track = this.tracks[this.audioList.indexOf(audio)];
         track.setAsPlaying();
       }
-
     }
   }
 
@@ -535,4 +533,10 @@
     let system = window.system = new System(window.data);
     system.render();
   });
+
+  // TODO:
+  // * Use local storage to cache last played audio and it's play time in order
+  //   to resume when the page refreshes
+  // * Give El class an _getChildren method which consumes an object { $label: SELECTOR }
+  //   and automatically defines these props
 })();
