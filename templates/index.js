@@ -329,7 +329,7 @@
 
     _onChange(e) {
       const N = e.target.valueAsNumber;
-      this.slider.value = N;
+      this.value = N;
       this.emit('change', N);
     }
 
