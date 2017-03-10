@@ -534,7 +534,6 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    window.EventEmitter = EventEmitter;
     let system = window.system = new System(JSON.parse(window.data));
     system.render();
   });
