@@ -198,7 +198,7 @@
       this._$template = this._getTemplate();
       // Reach into childnodes. Since content is a doc frag
       // Once this is attached to dom, the fragment is cleared
-      this.$el = this._$template.content.cloneNode(true).childNodes[1];
+      this.$el = this._$template.content.cloneNode(true).firstElementChild;
     }
 
     find(selector) {
@@ -375,7 +375,7 @@
       });
 
       this.addEventListener('click:button[data-fwd]', () => {
-        this.emit('forward');
+        this.emit('fwd');
       });
     }
   }
@@ -416,8 +416,6 @@
       this.controls.on('pause', () => {
         this.pause();
       });
-
-      // TODO: PAUSE event
 
       const SEEK_TIME = 15;
       this.controls.on('back', () => {
