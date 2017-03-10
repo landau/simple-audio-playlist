@@ -19,7 +19,7 @@ const data = fileNames.map(f => {
 
 // TODO: get time
 const html = INDEX_HTML
-  .replace('{data}', JSON.stringify(fileNames))
+  .replace('{data}', JSON.stringify(data))
   .replace('{js}', JS)
   .replace('{title}', process.argv[2] || 'Simple Audio Player');
 console.log(html);
