@@ -10,10 +10,16 @@ const JS = fs.readFileSync(path.join(TEMPLATES_DIR, 'index.js'), 'utf8');
 const CWD = process.cwd();
 
 const fileNames = fs.readdirSync(CWD).filter(f => /\.mp3$/.test(f));
+const data = fileNames.map(f => {
+  return {
+    src: f,
+    label: f.replace('.mp3', '')
+  };
+})
 
 // TODO: get time
 const html = INDEX_HTML
   .replace('{data}', JSON.stringify(fileNames))
-  .replace('{js}', JS) 
+  .replace('{js}', JS)
   .replace('{title}', process.argv[2] || 'Simple Audio Player');
 console.log(html);
