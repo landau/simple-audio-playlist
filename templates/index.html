@@ -134,377 +134,55 @@
   <!-- Fixed navbar -->
   <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container">
-      <div class="row">
-        <div class="col-sm-5 col-md-5" style="padding:20px;">
-          <div class="btn-group btn-group-lg center-block" data-player>
-            <button class="btn btn-custom" data-play><span title="Play" class="glyphicon glyphicon-play aligned"></span></button>
-            <button class="btn btn-custom" data-stop><span title="Stop" class="glyphicon glyphicon-stop aligned"></span></button>
-            <button class="btn btn-custom" data-prev><span title="-5 seconds" class="glyphicon glyphicon-fast-backward aligned"></span></button>
-            <button class="btn btn-custom" data-next><span title="+5 seconds" class="glyphicon glyphicon-fast-forward aligned"></span></button>
-            <button class="btn btn-custom" data-back><span title="-1 second" class="glyphicon glyphicon-chevron-left aligned"></span></button>
-            <button class="btn btn-custom" data-fwd><span title="+1 second" class="glyphicon glyphicon-chevron-right aligned"></span></button>
+      <div class="row" data-controls-root>
+        <template id="controls-template">
+          <div class="col-sm-5 col-md-5" style="padding:20px;">
+            <div class="btn-group btn-group-lg center-block" data-controls>
+              <button class="btn btn-custom" data-play><span title="Play" class="glyphicon glyphicon-play aligned"></span></button>
+              <button class="btn btn-custom" data-stop><span title="Stop" class="glyphicon glyphicon-stop aligned"></span></button>
+              <button class="btn btn-custom" data-pause><span title="+5 seconds" class="glyphicon glyphicon-pause aligned"></span></button>
+              <button class="btn btn-custom" data-back><span title="-1 second" class="glyphicon glyphicon-chevron-left aligned"></span></button>
+              <button class="btn btn-custom" data-fwd><span title="+1 second" class="glyphicon glyphicon-chevron-right aligned"></span></button>
+            </div>
           </div>
-        </div>
-        <div class="col-sm-5 col-md-5" style="padding:20px; margin: 20px 0 0;" data-slider>
-          <div data-time>0:00</div>
-          <input type="range" value="0" min="0" max="100"/>
-        </div>
+        </template>
+        <template id="slider-template">
+          <div class="col-sm-5 col-md-5" style="padding:20px; margin: 20px 0 0;" data-slider>
+            <div data-time>0:00</div>
+            <input type="range" value="0" min="0" max="100"/>
+          </div>
+        </template>
       </div>
-
-      <!-- <div id="navbar" class="collapse navbar-collapse">
-      </div> -->
     </div>
   </nav>
 
   <!-- Begin page content -->
-  <div class="container-fluid" id="main">
-    <!-- <div class="media" data-track data-src="Chamomile.mp3">
-      <div class="media-left">
-        <a href="#">
-          <span class="glyphicon glyphicon-music" aria-hidden="true" data-button></span>
-        </a>
+  <div class="container-fluid" id="main" data-track-root>
+    <template id="track-template">
+      <div class="media" data-track>
+        <div class="media-left">
+          <a href="#">
+            <span class="glyphicon glyphicon-music" aria-hidden="true" data-button></span>
+          </a>
+        </div>
+        <div class="media-body">
+          <h4 class="media-heading" data-label>{trackName}</h4>
+        </div>
       </div>
-      <div class="media-body">
-        <h4 class="media-heading" data-name>{trackName}</h4>
-      </div>
-    </div>
-    <div class="media" data-track data-src="Afro Sol.mp3">
-      <div class="media-left">
-        <a href="#">
-          <span class="glyphicon glyphicon-music" aria-hidden="true" data-button></span>
-        </a>
-      </div>
-      <div class="media-body">
-        <h4 class="media-heading" data-name>{trackName}</h4>
-      </div>
-    </div> -->
-    {items}
+    </template>
   </div>
 
   <footer class="footer">
     <div class="container">
     </div>
   </footer>
-
-  <!-- <script src="index.js"></script> -->
   <script>
-  (() => {
-    'use strict';
-    // TODO: refactor this to purley use 1 audio element per track
-    // The Player should react to events and should inform a "system"
-    // when a user tries to interact
-
-    class AudioX {
-      constructor() {
-
-        this.audio = new Audio();
-
-        this.mins = 0;
-        this.secs = 0;
-        this.initial = 0;
-        this.remaining = 100;
-
-        this.onTickEvents = [];
-
-        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement#Event_handlers
-        this.addEventListener('timeupdate', () => {
-          this.setTime();
-          this.onTickEvents.forEach(fn => fn(this));
-        });
-      }
-
-      // Mobile does not like inheriting from Audio. :(
-      // So we use adpater pattern
-
-      get duration() {
-        return this.audio.duration;
-      }
-
-      get currentTime() {
-        return this.audio.currentTime;
-      }
-
-      set currentTime(v) {
-        this.audio.currentTime = v;
-      }
-
-      get src() {
-        return this.audio.src;
-      }
-
-      set src(v) {
-        this.audio.src = v;
-      }
-
-      play() {
-        this.audio.play();
-      }
-
-      pause() {
-        this.audio.pause();
-      }
-
-      addEventListener(event, fn) {
-        this.audio.addEventListener(event, fn);
-        return () => {
-          this.audio.removeEventListener(event, fn);
-        };
-      }
-
-      once(event, fn) {
-        const removeEvent = this.addEventListener(event, (e) => {
-          fn(e);
-          removeEvent();
-        });
-      }
-
-      setTime() {
-        const rem = parseInt(this.duration - this.currentTime, 10);
-        this.mins = Math.floor(rem / 60, 10);
-        this.secs = rem - this.mins * 60;
-
-        // Percentage of song
-        this.initial = (this.currentTime / this.duration) * 100;
-        this.remaining = 100 - this.initial;
-      }
-
-      onTick(fn) {
-        this.onTickEvents.push(fn);
-      }
-
-      back(time) {
-        console.log(`Seeking back ${time} seconds`);
-        this.currentTime -= time;
-      }
-
-      fwd(time) {
-        console.log(`Seeking fwd ${time} seconds`);
-        this.currentTime += time
-      }
-    }
-
-    class Track {
-      constructor(element) {
-        this.element = element;
-
-        this.button = element.querySelector('[data-button]');
-        if (!this.button) {
-          throw new Error('Unable to find button.');
-        }
-
-        this.name = element.querySelector('[data-name]');
-        if (!this.name) {
-          throw new Error('Unable to find name element.');
-        }
-
-        this.src = element.dataset.src;
-        this.name.innerHTML = this.src
-
-        console.log(`Track with src ${this.src} created.`);
-
-        this.onClickEvents = [];
-
-        this.element.addEventListener('click', e => {
-          e.preventDefault();
-          console.log(`Track with src ${this.src} clicked.`);
-          this.onClickEvents.forEach(fn => fn(this));
-        });
-      }
-
-      onClick(fn) {
-        this.onClickEvents.push(fn);
-      }
-
-      _setDefaultButtonClass() {
-        this.button.classList.remove('glyphicon-play-circle');
-        this.button.classList.remove('glyphicon-music');
-        this.button.classList.remove('glyphicon-refresh');
-        this.button.classList.remove('glyphicon-spin');
-      }
-
-      setAsPlaying() {
-        this._setDefaultButtonClass();
-        this.button.classList.add('glyphicon-play-circle');
-      }
-
-      setAsStopped() {
-        this._setDefaultButtonClass();
-        this.button.classList.add('glyphicon-music');
-      }
-
-      setAsLoading() {
-        this._setDefaultButtonClass();
-        this.button.classList.add('glyphicon-refresh');
-        this.button.classList.add('glyphicon-spin');
-      }
-    }
-
-    class Slider {
-      constructor(element, audio) {
-        this.slider = element;
-
-        if (!this.slider)  {
-          throw new Error('Cannot start. No slider element');
-        }
-
-        this.audio = audio;
-
-        this.slider.step = 0.25;
-        this.slider.min = 0;
-        this.slider.max = audio.duration;
-
-        this.onChangeEvents = [];
-
-        this.time = this.slider.querySelector('[data-time]');
-        this.range = this.slider.querySelector('input');
-
-        // this.slider.addEventListener('input', this._onChange.bind(this));
-        this.slider.addEventListener('change', this._onChange.bind(this));
-      }
-
-      _onChange(e) {
-        const N = e.target.valueAsNumber;
-        this.slider.value = N;
-        this.onChangeEvents.forEach(fn => fn(N));
-      }
-
-      setTime(audio) {
-        let {mins, secs} = audio;
-
-        if (secs < 10) {
-          secs = `0${secs}`;
-        }
-
-        this.time.innerHTML = `${mins}:${secs}`;
-        this.range.value = audio.currentTime;
-
-        if (audio.duration !== this.range.max) {
-          this.range.max = audio.duration;
-        }
-      }
-
-      onChange(fn) {
-        this.onChangeEvents.push(fn);
-      }
-    }
-
-    // TODO: remember player positions via local storage
-    class Player {
-      constructor(trackElements, playerElement, sliderElement) {
-        console.log('Player constructed');
-
-        this.audio = new AudioX();
-        this.isPlaying = false;
-        this.track = null;
-
-        this.tracks = Array.from(trackElements).map(e => new Track(e));
-        this.tracks.forEach(t => {
-          t.onClick(t => this.play(t));
-        });
-
-        this.player = playerElement;
-        this.playEl = this.player.querySelector('[data-play]');
-        this.stopEl = this.player.querySelector('[data-stop]');
-        this.backEl = this.player.querySelector('[data-back]');
-        this.fwdEl = this.player.querySelector('[data-fwd]');
-
-        this.playEl.addEventListener('click', e => {interact
-          this.play(this.track);
-        });
-
-        this.stopEl.addEventListener('click', e => {
-          this.stop();
-        });
-
-        this.backEl.addEventListener('click', () => {
-          this.audio.back(15);
-        });
-
-        this.fwdEl.addEventListener('click', () => {
-          this.audio.fwd(15);
-        });
-
-        this.slider = new Slider(sliderElement, this.audio);
-
-        this.slider.onChange(n => {
-          this.audio.currentTime = n;
-        });
-
-        this.audio.onTick(time => {
-          if (this.track) {
-            this.slider.setTime(this.audio);
-          }
-        });
-
-      }
-
-      play(track) {
-        if (!track) {
-          console.log('Cannot play. No track provided.');
-          return;
-        }
-
-        if (this.isPlaying) {
-          // Same track clicked,
-          if (track === this.track) {
-            console.log('This track is already playing.');
-            return;
-          } else {
-            this.stop();
-          }
-        }
-
-        console.log(`Playing track ${track.src}.`);
-
-        if (track !== this.track) {
-          this.audio.src = track.src;
-          this.audio.currentTime = 0;
-
-          // FIXME: Memory leak if you goto another track
-          this.audio.once('loadstart', () => {
-            track.setAsLoading();
-          });
-
-          this.audio.once('loadeddata', () => {
-            track.setAsPlaying();
-          });
-
-          this.audio.once('ended', () => {
-            this.stop();
-            this.track = null;
-          })
-        } else {
-          // If user stops then plays, the icon switches
-          track.setAsPlaying();
-        }
-
-        this.audio.play();
-        this.isPlaying = true;
-        this.track = track;
-      }
-
-      stop() {
-        if (this.isPlaying) {
-          console.log(`Stopping track ${this.track.src}.`);
-          clearInterval(this.timer);
-
-          this.audio.pause();
-          this.isPlaying = false;
-          this.track.setAsStopped();
-        }
-      }
-    }
-    const p = new Player(
-      document.querySelectorAll('div[data-track]'),
-      document.querySelector('div[data-player]'),
-      document.querySelector('[data-slider]')
-    );
-    window.p = p;
-  })();
-  // TODO:
-  // Use localStorage to track currentTime of current track. Set track if track never unsets
-  //    Scroll to that track as well
+    // window.data = JSON.stringify([
+    //   { src: 'Chamomile.mp3', label: 'Chamomile' },
+    //   { src: 'Afro Sol.mp3', label: 'Afro Sol' }
+    // ]);
+    window.data = {data};
   </script>
-
+  <script src="index.js"></script>
 </body>
 </html>
