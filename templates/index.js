@@ -575,6 +575,7 @@
 
       audio.on('play', () => {
         track.setAsPlaying();
+        audio.currentTime = opts.currentTime;
         this.slider.setTime(audio);
       });
 
