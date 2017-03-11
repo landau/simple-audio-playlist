@@ -199,6 +199,7 @@
       // Reach into childnodes. Since content is a doc frag
       // Once this is attached to dom, the fragment is cleared
       this.$el = this._$template.content.cloneNode(true).firstElementChild;
+      this._setChildren();
     }
 
     find(selector) {
@@ -248,6 +249,20 @@
       this._attachToRoot();
     }
 
+    _getChildren() {
+      return {};
+    }
+
+    _setChildren() {
+      const children = this._getChildren();
+      Object.keys(children).forEach(k => {
+        if (this[k]) {
+          throw new Error(`_setChildren cannot set prop ${k}`);
+        }
+        this[k] = this.find(children[k]);
+      });
+    }
+
     static find(selector, root) {
       if (!root) {
         root = document.body;
@@ -260,23 +275,24 @@
     }
   }
 
-  // TODO: Cache found elements with root as key in map which maps to a obj of selectors
-  // El._nodeCache = new WeakMap();
 
   class Track extends El {
-    // TODO: is this pattern of chaning super class signature acceptable?
     constructor(options) {
       super(options);
-      this.label = options.label;
 
-      assert(this.label, 'Cannot construct track without a label')
+      assert(options.label, 'Cannot construct track without a label')
+      this.label = options.label;
       console.log(`Track constructed with label ${this.label}.`);
 
-      // TODO: make super class read a map of prop names to selectors
       this.$button = this.find('span[data-button]');
-
-      this.$label = this.find('[data-label]');
       this.$label.innerHTML = this.label;
+    }
+
+    _getChildren() {
+      return {
+        $label: '[data-label]',
+        $button: 'span[data-button]'
+      };
     }
 
     _attachEvents() {
@@ -315,12 +331,16 @@
       super(options)
       console.log('Slider constructed');
 
-      this.$time = this.find('[data-time]');
-      this.$range = this.find('input');
-
       this.step = 1;
       this.min = 0;
       // this.max = ?;
+    }
+
+    _getChildren() {
+      return {
+        $time: '[data-time]',
+        $range: 'input'
+      };
     }
 
     _attachEvents() {
@@ -386,13 +406,13 @@
       this.data = data;
       this.activeAudio = null;
 
-      this.audioList = this.data.map(d => new AudioX(d.src)); // TODO: don't autoload when src is set
+      this.audioList = this.data.map(d => new AudioX(d.src));
 
       this.tracks = this.data.map(a => new Track(({
         rootSelector: 'div[data-track-root]',
         templateSelector: '#track-template',
         label: a.label
-      }))); // TODO: embed this html
+      })));
 
       this.tracks.forEach((track, i) => {
         track.on('click', () => {
@@ -537,6 +557,5 @@
   // TODO:
   // * Use local storage to cache last played audio and it's play time in order
   //   to resume when the page refreshes
-  // * Give El class an _getChildren method which consumes an object { $label: SELECTOR }
-  //   and automatically defines these props
+  // * If a press down event occurs on slider, do not change position of 'tick' on slider
 })();
