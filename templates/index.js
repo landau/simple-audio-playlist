@@ -514,7 +514,7 @@
         let audio = this.audioList.find(a => a.src === cachedAudio.src);
         if (audio) {
           audio.preload = 'auto';
-          audio.currentTime = cachedAudio.currentTime
+          // audio.currentTime = cachedAudio.currentTime
           this.play(audio, false);
         }
       }
