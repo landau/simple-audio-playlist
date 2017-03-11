@@ -575,6 +575,7 @@
 
       audio.on('play', () => {
         track.setAsPlaying();
+        // Chrome mobile doesn't like setting time at metadata time
         audio.currentTime = opts.currentTime;
         this.slider.setTime(audio);
       });
