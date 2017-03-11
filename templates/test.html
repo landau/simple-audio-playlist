@@ -1,4 +1,188 @@
-(function() {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <meta name="description" content="">
+  <meta name="author" content="Trevor Landau">
+  <!-- <link rel="icon" href="../../favicon.ico"> -->
+
+  <title>Simple Audio Player</title>
+
+  <!-- Bootstrap core CSS -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- <script src="http://192.168.1.121:8080/target/target-script-min.js#anonymous"></script> -->
+
+  <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+  <!-- <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet"> -->
+
+  <!-- Custom styles for this template -->
+  <style>
+    /* Sticky footer styles
+    -------------------------------------------------- */
+    html {
+      position: relative;
+      min-height: 100%;
+    }
+    body {
+      /* Margin bottom by footer height */
+      margin-bottom: 60px;
+    }
+    .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      /* Set the fixed height of the footer here */
+      height: 60px;
+      background-color: #f5f5f5;
+    }
+
+    /* Custom page CSS
+    -------------------------------------------------- */
+    /* Not required for template or sticky footer method. */
+
+    body > .container, body > .container-fluid {
+      padding: 60px 15px 0;
+    }
+
+    #main {
+      margin-top: 100px;
+    }
+
+    .footer > .container, .footer > .container-fluid {
+      padding-right: 15px;
+      padding-left: 15px;
+    }
+
+    code {
+      font-size: 80%;
+    }
+
+    .media .glyphicon {
+      font-size: 30px;
+    }
+
+    .aligned {
+      text-align: center;
+      padding-bottom:28%;
+    }
+
+    .aligned_input {
+      text-align: center;
+      padding-bottom:-10%;
+    }
+
+    .aligned_text {
+      text-align: center;
+      font-size: 88%;
+    }
+
+    .btn-custom {
+      background-color: black;
+      color:white;
+      transition-property: background, opacity;
+      transition-duration: 0.5s;
+    }
+
+    .btn-custom:hover, .btn-custom:active, .btn-custom:focus {
+      cursor: pointer;
+      opacity:0.5;
+      color:white;
+      //background-color:white;
+    }
+
+    .glyphicon-spin {
+      -webkit-animation: spin 1000ms infinite linear;
+      animation: spin 1000ms infinite linear;
+    }
+
+    @-webkit-keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+      }
+    }
+
+    @keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+      }
+    }
+  </style>
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="row" data-controls-root>
+        <template id="controls-template">
+          <div class="col-sm-5 col-md-5" style="padding:20px;">
+            <div class="btn-group btn-group-lg center-block" data-controls>
+              <button class="btn btn-custom" data-play><span title="Play" class="glyphicon glyphicon-play aligned"></span></button>
+              <button class="btn btn-custom" data-stop><span title="Stop" class="glyphicon glyphicon-stop aligned"></span></button>
+              <button class="btn btn-custom" data-pause><span title="+5 seconds" class="glyphicon glyphicon-pause aligned"></span></button>
+              <button class="btn btn-custom" data-back><span title="-1 second" class="glyphicon glyphicon-chevron-left aligned"></span></button>
+              <button class="btn btn-custom" data-fwd><span title="+1 second" class="glyphicon glyphicon-chevron-right aligned"></span></button>
+            </div>
+          </div>
+        </template>
+        <template id="slider-template">
+          <div class="col-sm-5 col-md-5" style="padding:20px; margin: 20px 0 0;" data-slider>
+            <div data-time>0:00</div>
+            <input type="range" value="0" min="0" max="100"/>
+          </div>
+        </template>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Begin page content -->
+  <div class="container-fluid" id="main" data-track-root>
+    <template id="track-template">
+      <div class="media" data-track>
+        <div class="media-left">
+          <a href="#">
+            <span class="glyphicon glyphicon-music" aria-hidden="true" data-button></span>
+          </a>
+        </div>
+        <div class="media-body">
+          <h4 class="media-heading" data-label>{trackName}</h4>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+    </div>
+  </footer>
+  <script>
+    // window.data = JSON.stringify([
+    //   { src: 'Chamomile.mp3', label: 'Chamomile' },
+    //   { src: 'Afro Sol.mp3', label: 'Afro Sol' }
+    // ]);
+    window.data = [{"src":"Afro Sol.mp3","label":"Afro Sol"},{"src":"Chamomile.mp3","label":"Chamomile"}];
+    (function() {
   'use strict';
 
   function assert(assertion, msg) {
@@ -498,8 +682,6 @@
       this.audioList.forEach(audio => {
         audio.on('tick', audio => {
           this.slider.setTime(audio);
-          // TODO: touching localstorage every tick
-          //       is a bit much
           this.cache.audio = audio;
         });
       });
@@ -556,7 +738,10 @@
           track.setAsLoading();
         });
 
+        // TODO: Set as paused if autoplay is false
+        // once audio is loaded
         audio.on('loadeddata', () => {
+          console.log('loaddeddat');
           if (!autoplay) {
             track.setAsPaused();
           }
@@ -618,5 +803,13 @@
   });
 
   // TODO:
+  // * Use local storage to cache last played audio and it's play time in order
+  //   to resume when the page refreshes
   // * If a press down event occurs on slider, do not change position of 'tick' on slider
 })();
+
+  </script>
+  <!-- <script src="index.js"></script> -->
+</body>
+</html>
+
