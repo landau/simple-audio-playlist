@@ -513,8 +513,9 @@
       if (cachedAudio) {
         let audio = this.audioList.find(a => a.src === cachedAudio.src);
         if (audio) {
-          audio.currentTime = cachedAudio.currentTime
           audio.preload = 'auto';
+          audio.currentTime = cachedAudio.currentTime
+          this.slider.setTime(audio);
           this.play(audio, false);
         }
       }
