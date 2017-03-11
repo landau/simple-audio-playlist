@@ -552,17 +552,15 @@
 
       const track = this.tracks[this.audioList.indexOf(audio)];
 
-      if (!audio.isReady) {
-        audio.on('loadstart', () => {
-          track.setAsLoading();
-        });
+      audio.on('loadstart', () => {
+        track.setAsLoading();
+      });
 
-        audio.on('loadeddata', () => {
-          if (!autoplay) {
-            track.setAsPaused();
-          }
-        });
-      }
+      audio.on('loadeddata', () => {
+        if (!autoplay) {
+          track.setAsPaused();
+        }
+      });
 
       audio.on('playing', () => {
         track.setAsPlaying();
