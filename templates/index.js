@@ -515,6 +515,7 @@
         if (audio) {
           audio.preload = 'auto';
           audio.currentTime = cachedAudio.currentTime
+          alert(cachedAudio.currentTime);
           this.slider.setTime(audio);
           this.play(audio, false);
         }
