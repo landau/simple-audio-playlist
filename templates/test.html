@@ -682,6 +682,8 @@
       this.audioList.forEach(audio => {
         audio.on('tick', audio => {
           this.slider.setTime(audio);
+          // TODO: touching localstorage every tick
+          //       is a bit much
           this.cache.audio = audio;
         });
       });
@@ -695,8 +697,9 @@
       if (cachedAudio) {
         let audio = this.audioList.find(a => a.src === cachedAudio.src);
         if (audio) {
-          audio.currentTime = cachedAudio.currentTime
           audio.preload = 'auto';
+          audio.currentTime = cachedAudio.currentTime
+          this.slider.setTime(audio);
           this.play(audio, false);
         }
       }
@@ -733,22 +736,17 @@
 
       const track = this.tracks[this.audioList.indexOf(audio)];
 
-      if (!audio.isReady) {
-        audio.on('loadstart', () => {
-          track.setAsLoading();
-        });
+      audio.on('loadstart', () => {
+        track.setAsLoading();
+      });
 
-        // TODO: Set as paused if autoplay is false
-        // once audio is loaded
-        audio.on('loadeddata', () => {
-          console.log('loaddeddat');
-          if (!autoplay) {
-            track.setAsPaused();
-          }
-        });
-      }
+      audio.on('loadedmetadata', () => {
+        if (!autoplay) {
+          track.setAsPaused();
+        }
+      });
 
-      audio.on('playing', () => {
+      audio.on('play', () => {
         track.setAsPlaying();
         this.slider.setTime(audio);
       });
@@ -803,8 +801,6 @@
   });
 
   // TODO:
-  // * Use local storage to cache last played audio and it's play time in order
-  //   to resume when the page refreshes
   // * If a press down event occurs on slider, do not change position of 'tick' on slider
 })();
 

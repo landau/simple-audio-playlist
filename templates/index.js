@@ -556,13 +556,13 @@
         track.setAsLoading();
       });
 
-      audio.on('loadeddata', () => {
+      audio.on('loadedmetadata', () => {
         if (!autoplay) {
           track.setAsPaused();
         }
       });
 
-      audio.on('playing', () => {
+      audio.on('play', () => {
         track.setAsPlaying();
         this.slider.setTime(audio);
       });
