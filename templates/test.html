@@ -698,8 +698,10 @@
         let audio = this.audioList.find(a => a.src === cachedAudio.src);
         if (audio) {
           audio.preload = 'auto';
-          audio.currentTime = cachedAudio.currentTime
-          this.play(audio, false);
+          this.play(audio, {
+            currentTime: cachedAudio.currentTime,
+            autoplay: false
+          });
         }
       }
     }
@@ -710,11 +712,17 @@
       this.tracks.forEach(t => t.attach());
     }
 
-    play(audio, autoplay = true) {
+    play(audio, opts) {
       if (!audio) {
         console.log('Cannot play. No audio provided.');
         return;
       }
+
+      const defaultOpts = {
+        currentTime: 0,
+        autoplay: true
+      };
+      opts = Object.assign({}, defaultOpts, opts);
 
       // Same track clicked,
       if (audio === this.activeAudio) {
@@ -740,9 +748,11 @@
       });
 
       audio.on('loadedmetadata', () => {
-        if (!autoplay) {
+        if (!opts.autoplay) {
           track.setAsPaused();
+
         }
+        audio.currentTime = opts.currentTime;
         this.slider.setTime(audio);
       });
 
@@ -755,7 +765,7 @@
         this.stop();
       });
 
-      if (autoplay) {
+      if (opts.autoplay) {
         audio.play();
       }
     }
