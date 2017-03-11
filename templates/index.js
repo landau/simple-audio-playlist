@@ -515,8 +515,6 @@
         if (audio) {
           audio.preload = 'auto';
           audio.currentTime = cachedAudio.currentTime
-          alert(cachedAudio.currentTime);
-          this.slider.setTime(audio);
           this.play(audio, false);
         }
       }
@@ -560,7 +558,13 @@
       audio.on('loadedmetadata', () => {
         if (!autoplay) {
           track.setAsPaused();
+
         }
+        let cachedAudio = this.cache.audio;
+        if (cachedAudio && cachedAudio.src === audio.src) {
+          audio.currentTime = cachedAudio.currentTime;
+        }
+        this.slider.setTime(audio);
       });
 
       audio.on('play', () => {
