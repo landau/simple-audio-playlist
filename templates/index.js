@@ -567,17 +567,20 @@
       audio.on('loadedmetadata', () => {
         if (!opts.autoplay) {
           track.setAsPaused();
-
         }
+
         audio.currentTime = opts.currentTime;
         this.slider.setTime(audio);
       });
 
       audio.on('play', () => {
-        track.setAsPlaying();
         // Chrome mobile doesn't like setting time at metadata time
         audio.currentTime = opts.currentTime;
         this.slider.setTime(audio);
+      });
+
+      audio.on('playing', () => {
+        track.setAsPlaying();
       });
 
       audio.on('ended', () => {
